@@ -2,9 +2,16 @@ package StringClass;
 
 public class List {
 
+    //элемент списка
     public class StringItem {
+
+        //массив для храннеия чаров
         private final char [] symbols;
+
+        //переменная для хранения занятых мест в массиве
         private byte size;
+
+        //ссылка на следующий элемент списка
         private StringItem next;
 
         public StringItem(char[] a, byte b, StringItem c){
@@ -14,20 +21,25 @@ public class List {
         }
     }
 
-    //дополнительный класс чтобы возвращать позицию элемента и айтем в одной переменной
+    //дополнительный класс чтобы возвращать позицию элемента и айтем в одной переменной (нужен для методов поиска)
     public class Wrapper {
         public Wrapper(int a, StringItem b) {
             position = a;
             node = b;
         }
+        //позиция внутри айтема (индекс в массиве)
         private final int position;
+
+        //ссылка на айтем
         private final StringItem node;
     }
 
+    //размер айтема
     final static int SIZE = 16;
     private StringItem head;
 
     //соединение двух массивов
+    //параметры: из какого массива, в какой массив, сколько занятых элементов в первом, сколько занятых во втором
     public void unionArrays(char[] ar1, char [] ar2, int sz1, int sz2) {
         if(sz1 + sz2 <= SIZE) {
             for (int i = 0; i < sz2; i++) {
@@ -38,6 +50,8 @@ public class List {
 
     //поиск по индексу
     public Wrapper search(int index) {
+
+        //стандартный цикл с запаздывающим указателем
         StringItem g = this.head;
         StringItem h = g.next;
         int q = g.size;
@@ -48,10 +62,11 @@ public class List {
             h = h.next;
         }
 
-        if (g == head)
+        if (g == head) {
             return (new Wrapper(index - 1, head));
-        else
-            return (new Wrapper(index - q - 1 + h.size, g));
+        } else {
+            return (new Wrapper(index - q + g.size, g));
+        }
     }
 
     //поиск последнего элемента со сцепкой айтемов
@@ -59,8 +74,11 @@ public class List {
     public Wrapper searchEnd() {
         StringItem g = this.head;
         StringItem h = g.next;
+
         while (h != null) {
             if(h.next!=null) {
+
+                //если один элемент полностью помещается во второй, то переносим второй массив в первый и перекидываем ссылку
                 if(g.size + h.size <= SIZE) {
                     unionArrays(g.symbols, h.symbols, g.size, h.size);
                     g.size += h.size;
@@ -70,7 +88,7 @@ public class List {
             g = h;
             h = h.next;
         }
-        return (new Wrapper(g.size - 1, g));
+        return (new Wrapper(g.size, g));
     }
 
 
@@ -89,18 +107,23 @@ public class List {
         int len = q.length();
         char[] chararray = new char[SIZE];
 
-        //если строка помещается в node
+        //если строка помещается в айтем
         if(len <= SIZE) {
+            //Преобразуем исходную строку в массив чаров, и записываем исходную строку в массив chararray
             q.getChars(0, len, chararray, 0);
+            //помещаем строку в голову
             head = new StringItem(chararray, (byte) len, null);
         }
         else {
-            //получаем массив чаров и преобразовываем его в наш тип
+            //Преобразуем исходную строку в массив чаров, и записываем исходную строку в массив chararray
             q.getChars(0, SIZE, chararray,0);
+
+            //создаем голову нового списка
             head = new StringItem(chararray, (byte) SIZE, head);
             StringItem h = head;
 
-            //создаем ноды длиной SIZE и записываем в них соответвующие элементы
+            //создаем айтемы длиной SIZE и записываем в них соответвующие элементы.
+            //Если в исходной строке нет полных нодов (кроме головы), в цикл мы не зайдем.
             for (;m < len;n += SIZE) {
                 chararray = new char[SIZE];
                 q.getChars(n,m,chararray,0);
@@ -110,11 +133,12 @@ public class List {
             }
 
             //если длина исходной строки не кратна SIZE - отдельно записывается последний node
-            if(m - SIZE != len){
+            //копируем остатки строки в айтем. Если число символов в строке кратно SIZE - в цикл не зайдем.
+            if (m - SIZE != len){
                 chararray = new char[SIZE];
-                m = len- (len - m + SIZE);
+                m = len - (len - m + SIZE);
                 q.getChars(m, len ,chararray,0);
-                h.next = new StringItem(chararray, (byte) (len - m), null);
+                h.next = new StringItem(chararray, (byte)(len - m), null);
             }
         }
     }
@@ -133,20 +157,23 @@ public class List {
     }
 
     //вернуть символ в строке в позиции index
-    public char CharAt(int index) {
+    public char charAt(int index) {
         if(index <= 0 || index > this.length())
             throw new myException("Не подходящий индекс");
 
         Wrapper x = this.search(index);
+        //возвращаем символ через вспомогательный класс
         return(x.node.symbols[x.position]);
     }
 
     //заменить в строке символ в позиции index на символ ch
-    public void SetCharAt(int index, char symbol) {
+    public void setCharAt(int index, char symbol) {
         if(index <= 0 || index > this.length())
             throw new myException("Не подходящий индекс");;
 
         Wrapper x = this.search(index);
+
+        //меняем символ через вспомогательный класс
         x.node.symbols[x.position] = symbol;
     }
 
@@ -155,17 +182,19 @@ public class List {
         if(start <= 0 || end <= 0 || start > end || start > this.length() || end > this.length() || end < start+1 )
             throw new myException("Не подходящий индекс");
 
+        //поиск начала и конца искомого отрезка строки
         Wrapper x = this.search(start);
         Wrapper y = this.search(end);
         //System.out.println(y.position+" "+x.position);
 
-        //Если кусок нужной строки находится в одном ноде
-        if (x.node==y.node)
+        //Если отрезок нужной строки находится в одном ноде
+        if (x.node==y.node){
+            //копируем часть массива чаров и переделываем его в строку
             return(new List(String.copyValueOf(x.node.symbols, x.position, y.position - x.position)));
-        else {
+        } else {
             StringItem h = x.node;
 
-            //копируем все элементы(с нужного по последний) в первом айтеме
+            //копируем все элементы (с нужного по последний) в первом айтеме и добавляем к строке
             List str = new List(String.copyValueOf(h.symbols, x.position, h.size-x.position));
             h = x.node.next;
             //str.printSize();
@@ -173,7 +202,7 @@ public class List {
             //полностью копируем остальные айтемы в строку
             while (h!=y.node) {
                 str.append(String.copyValueOf(h.symbols, 0, h.size));
-                h=h.next;
+                h = h.next;
             }
 
             //копирование с первого элемента по нужный в последнем айтеме
@@ -184,14 +213,14 @@ public class List {
 
     //добавить в конец строки символ (в конец символьного массива последнего блока, если там есть свободное место, иначе в начало символьного массива нового блока)
     public void append(char symbol) {
-
-        //если нужно создавать новый node
-        if (this.length()% SIZE == 0) {
+        //если нужно создавать новый айтем
+        if (this.length() % SIZE == 0) {
             char[] arr = new char[SIZE];
-            arr[0]=symbol;
-            head = new StringItem(arr, (byte) 1, head);
+            arr[0] = symbol;
+            head = new StringItem(arr, (byte)1, head);
         }
         else {
+            //если новый айтем не нужен - добавляем элемент в последний айтем.
             Wrapper x = this.searchEnd();
             x.node.symbols[x.position] = symbol;
             this.search(this.length()).node.size += 1;
@@ -200,16 +229,18 @@ public class List {
 
     //добавить в конец строку String (перекинуть указатель на следующий последнего блока исходной строки на голову добавляемой строки)
     public void append(String string1) {
+        //преобразуем строку в наш класс и вызываем другой метод
         this.append(new List(string1));
     }
 
     //добавить в конец строку ListString (перекинуть указатель на следующий последнего блока исходной строки на голову добавляемой строки)
     public void append(List string1) {
+        //создание копии объекта и добавление ее к последнему айтему
         List l = new List(string1);
         this.searchEnd().node.next = l.head;
     }
 
-    //вспомогательный метод для отладки
+    //вспомогательный метод для отладки (показывает количество занятых элементов в каждом айтеме)
     public void printSize() {
         StringItem h = this.head;
         while (h != null) {
@@ -228,6 +259,7 @@ public class List {
         if(index <= 0 || index > this.length())
             throw new myException("Не подходящий индекс");
 
+        //создаем копию объекта, а также ищем айтем в который надо вставить, а также предыдущий айтем
         List l = new List(str);
         Wrapper x = this.search(index);
         Wrapper x1 = this.search(index - x.position - 1);
@@ -253,11 +285,13 @@ public class List {
             StringItem q1 = new StringItem(str.substring(0, x.position).toCharArray(), (byte) (x.position), null);
             StringItem q2 = new StringItem(str.substring(x.position, x.node.size).toCharArray(), (byte) (x.node.size - x.position), x.node.next);
 
+            //если делится голова - обрабатываеся отдельно, поскольку в таком случае x1 = -1 (у головы нет предыдущего айтема)
             if (head == x.node)
                 head = q1;
             else
                 x1.node.next = q1;
 
+            //перекидывание ссылок
             q1.next = l.head;
             x = l.search(l.length());
             x.node.next = q2;
@@ -268,10 +302,13 @@ public class List {
     public int length() {
         StringItem h = this.head;
         int q = 0;
+
+        //реальный размер строки считается суммой всех занятых мест во всем списке
         while (h != null) {
             q += h.size;
             h = h.next;
         }
+
         return q;
     }
 
@@ -279,14 +316,41 @@ public class List {
     public String toString() {
         StringItem h = this.head;
         StringBuilder str = new StringBuilder();
+
+        //добавляем к строке значающие части всех айтемов
         while (h!=null) {
             str.append(String.copyValueOf(h.symbols, 0, h.size));
             h = h.next;
         }
+
         return str.toString();
     }
 
     public static void main(String[] args){
-    }
+        System.out.println("Input String:");
+        List l1 = new List("Hello wonderful world");
+        System.out.println(l1);
+        System.out.println();
 
+        System.out.println("Appending exclamation mark to the end:");
+        l1.append('!');
+        System.out.println(l1);
+        System.out.println();
+
+        System.out.println("Setting 'W' in 'wonderful' to uppercase:");
+        l1.setCharAt(7,  'W');
+        System.out.println(l1);
+        System.out.println();
+
+        System.out.println("Inserting a comma after 'Hello'");
+        l1.insert(6, ",");
+        System.out.println(l1);
+        System.out.println();
+
+        System.out.println("getting the word 'Wonderful' with subString:");
+        System.out.println(l1.substring(7, 16));
+        System.out.println();
+
+        System.out.println("String length: " + "Hello, Wonderful world!".length() + " | Our String length: " + l1.length());
+    }
 }
