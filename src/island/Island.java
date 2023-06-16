@@ -74,7 +74,6 @@ public class Island {
                     }
                 }
 
-
                 if (Animal.isMoving()) {
                     //если клетка пустая - меняем клетки местами
                     if (land[i][j].isRabbit()) {
@@ -94,12 +93,14 @@ public class Island {
                             land[i][j].increasePoints();
                         } else {
                             temp = land[i][j];
-                            land[i][j].decreasePoints();
                         }
-
                     }
                     landCopy[i][j] = land[y][x];
                     landCopy[y][x] = temp;
+                } else {
+                    if (land[i][j].isFox()) {
+                        landCopy[i][j] = land[i][j].decreasePoints();
+                    }
                 }
             }
         }

@@ -2,7 +2,7 @@ package island;
 
 public class Animal {
     public void print() {
-        System.out.print("_ ");
+        System.out.print("   _   ");
     }
 
     /*
@@ -31,7 +31,7 @@ public class Animal {
         return false;
     }
 
-    public void decreasePoints() {}
+    public Animal decreasePoints() { return this; }
 
     public void increasePoints() {}
 

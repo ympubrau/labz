@@ -12,8 +12,10 @@ public class Fox extends Animal{
         return true;
     }
 
-    public void decreasePoints() {
+    public Animal decreasePoints() {
         points --;
+        if (points <= 0) return new Animal();
+        return this;
     }
 
     public void increasePoints() {
@@ -21,6 +23,7 @@ public class Fox extends Animal{
     }
 
     public void print() {
-        System.out.print("F ");
+        String str = points < 10 ? "0" + points : String.valueOf(points);
+        System.out.print("F (" + str + ") ");
     }
 }
