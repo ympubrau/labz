@@ -23,17 +23,13 @@ public class Animal {
          нельзя походить, если в клетке лиса)
          Кролику надо отличать пустую клетку от клетку с лисой / кроликом.
     */
-    public boolean isFox() {
+    public boolean canBeGone() {
         return false;
     }
 
-    public boolean isRabbit() {
+    public boolean canBeEaten() {
         return false;
     }
-
-    public Animal decreasePoints() { return this; }
-
-    public void increasePoints() {}
 
     /*
         Данный метод нужен для размножения. Он будет возвращать объект суперкласса, поэтому
@@ -43,4 +39,6 @@ public class Animal {
     public Animal reproduce() {
         return null;
     }
+
+    public Animal move(Animal target) {return this;}
 }

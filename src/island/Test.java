@@ -7,7 +7,7 @@ public class Test {
         initIsland(is);
         is.printIsland();
 
-        for (int i = 0; i < 52; i++){
+        for (int i = 0; i < 15; i++){
             is.life();
             is.printIsland();
         }

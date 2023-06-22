@@ -9,7 +9,7 @@ public class Rabbit extends Animal{
         return t == 1 ? new Rabbit() : null;
     }
 
-    public boolean isRabbit() {
+    public boolean canBeEaten() {
         return true;
     }
 

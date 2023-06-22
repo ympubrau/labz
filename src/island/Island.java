@@ -56,7 +56,7 @@ public class Island {
         for (int i = 0; i < land.length; i++){
             for (int j = 0; j < land[i].length; j++) {
                 //если мы в обычный клетке, а не на клетке кролика или лисы
-                if (!land[i][j].isFox() && !land[i][j].isRabbit()) continue;
+                if (!land[i][j].canBeGone() && !land[i][j].canBeEaten()) continue;
 
                 int x, y;
                 Animal temp;
@@ -74,33 +74,31 @@ public class Island {
                     }
                 }
 
-                if (Animal.isMoving()) {
-                    //если клетка пустая - меняем клетки местами
-                    if (land[i][j].isRabbit()) {
-                        Cords t = findFree(i,j, true);
-                        x = t.x;
-                        y = t.y;
-                        if (x == -1) continue;
-                        temp = land[i][j];
-                    } else {
-                        Cords t = findFree(i,j, false);
-                        x = t.x;
-                        y = t.y;
-                        if (x == -1) continue;
 
-                        if (land[x][y].isRabbit()) {
-                            temp = new Animal();
-                            land[i][j].increasePoints();
-                        } else {
-                            temp = land[i][j];
-                        }
-                    }
-                    landCopy[i][j] = land[y][x];
-                    landCopy[y][x] = temp;
+                //считаем вероятность
+                boolean shouldMove = Animal.isMoving();
+
+                //ищем свободное место
+                Cords t;
+                if (land[i][j].canBeEaten()) {
+                    t = findFree(i,j, true);
                 } else {
-                    if (land[i][j].isFox()) {
-                        landCopy[i][j] = land[i][j].decreasePoints();
-                    }
+                    t = findFree(i,j, false);
+                }
+
+                x = t.x;
+                y = t.y;
+                //if (x != -1) System.out.println(x + " " + y +  " " + land[x][y].isRabbit() + " | " + i + " " + j +  " " + land[i][j].isFox());
+
+                //либо мы ходим туда, куда можно пойти
+                if (shouldMove && x!= -1 ) {
+                    temp = land[i][j].move(land[x][y]);
+                    landCopy[i][j] = new Animal();
+                    landCopy[x][y] = temp;
+                }
+                //либо остаемся на месте, но у лисы отнимутся очки
+                else {
+                    landCopy[i][j] = land[i][j].move(land[i][j]);
                 }
             }
         }
@@ -127,9 +125,9 @@ public class Island {
                 if (i == a && j == b) continue;
                 boolean t = true;
                 if (forRabbit) {
-                    t = !land[i][j].isRabbit();
+                    t = !land[i][j].canBeEaten();
                 }
-                if (!land[i][j].isFox() && t) {
+                if (!land[i][j].canBeGone() && t) {
                     count += 1;
                 }
             }
@@ -181,11 +179,11 @@ public class Island {
             //System.out.println(x + " " + y + " | old coords: " + a + " " + b + " | random: "  + r + " | count: " + count);
 
             if (!forRabbit) {
-                if (!land[x][y].isFox()) {
+                if (!land[x][y].canBeGone()) {
                     return new Cords(x,y);
                 }
             } else {
-                if (!land[x][y].isFox() && !land[x][y].isRabbit()) {
+                if (!land[x][y].canBeGone() && !land[x][y].canBeEaten()) {
                     return new Cords(x,y);
                 }
             }
