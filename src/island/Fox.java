@@ -36,6 +36,7 @@ public class Fox extends FreeCell {
         }
     }
 
+    //ищет клетку где либо сводно, либо есть кролик
     private Coordinates findFreeFox(FreeCell[][] land) {
         int count = 0;
         int a = i;

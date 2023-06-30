@@ -47,5 +47,7 @@ public abstract class Cell {
 
     public abstract Coordinates move(FreeCell[][] land);
 
+    //поиск свободного элемент
+    //ищет клетку, где не стоят ни кролики ни лисы и возвращает ее кординаты
     public abstract Coordinates findFree(FreeCell[][] land);
 }
