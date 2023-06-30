@@ -1,12 +1,19 @@
 package island;
 
-public class Rabbit extends Animal{
+public class Rabbit extends FreeCell {
     /*
         С вероятностью 1/2 данный метод возвращает нового кролика. В противном случае - возвращает нулл
      */
-    public Animal reproduce() {
+
+    public Rabbit(int X, int Y) {
+        super(X, Y);
+        super.i = X;
+        super.j = Y;
+    }
+
+    public FreeCell reproduce(int i, int j) {
         int t = (int)Math.floor(Math.random() * 2);
-        return t == 1 ? new Rabbit() : null;
+        return t == 1 ? new Rabbit(i, j) : null;
     }
 
     public boolean canBeEaten() {
@@ -15,5 +22,9 @@ public class Rabbit extends Animal{
 
     public void print() {
         System.out.print("   R   ");
+    }
+
+    public Coordinates move(FreeCell[][] land) {
+        return findFree(land);
     }
 }

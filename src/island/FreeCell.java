@@ -1,46 +1,49 @@
 package island;
 
-public class Fox extends FreeCell {
-    private int points = 5;
+public class FreeCell extends Cell {
 
-    public Fox(int X, int Y) {
-        super(X,Y);
-        super.i = X;
-        super.j = Y;
+    //координаты
+    protected int i;
+    protected int j;
+
+    public FreeCell(int X, int Y) {
+        super(X, Y);
     }
 
-    public FreeCell reproduce(int i, int j) {
-        int t = (int)Math.floor(Math.random() * 6);
-        return t > 2 ? new Fox(i,j) : null;
+    public Coordinates getCords() {
+        return new Coordinates(i,j);
     }
 
-    public boolean canBeGone() {
-        return true;
+    public void setCords(Coordinates c) {
+        i = c.x;
+        j = c.y;
     }
 
     public void print() {
-        String str = points < 10 ? "0" + points : String.valueOf(points);
-        System.out.print("F (" + str + ") ");
+        System.out.print("   _   ");
     }
 
-    public Coordinates move (FreeCell[][] land) {
-        Coordinates t = findFreeFox(land);
-        FreeCell target = land[i][j];
-        if (target.canBeEaten()) {
-            //System.out.println("EATEN");
-            points += 3;
-            return t;
-        } else {
-            points --;
-            return points <= 0 ? new Coordinates(-1,-1) : t;
-        }
+
+    public boolean canBeGone() {
+        return false;
     }
 
-    private Coordinates findFreeFox(FreeCell[][] land) {
-        int count = 0;
+    public boolean canBeEaten() {
+        return false;
+    }
+
+
+    public FreeCell reproduce(int i, int j) {
+        return null;
+    }
+
+    public Coordinates move(FreeCell[][] land) { return new Coordinates(i,j); }
+
+    public Coordinates findFree(FreeCell[][] land) {
         int a = i;
         int b = j;
-
+        int count = 0;
+        //System.out.println("FIND FREE:" + a + " " + b);
         //обработка рамок
         int a1 = a == 0 ? 0 : a - 1;
         int a2 = a == land.length - 1 ? land.length - 1 : a + 2;
@@ -51,7 +54,7 @@ public class Fox extends FreeCell {
         for (int i = a1; i < a2; i++) {
             for (int j = b1; j < b2; j++) {
                 if (i == a && j == b) continue;
-                if (!land[i][j].canBeGone()) {
+                if (!land[i][j].canBeGone() && !land[i][j].canBeEaten()) {
                     count += 1;
                 }
             }
@@ -62,7 +65,6 @@ public class Fox extends FreeCell {
         //поиск свободного
         while (true) {
             int r = (int)Math.floor(Math.random() * 9);
-
             int x,y;
             x = a;
             y = b;
@@ -101,6 +103,8 @@ public class Fox extends FreeCell {
 
             if (x < 0 || y < 0 || y >= land.length || x >= land.length) continue;
             //System.out.println(x + " " + y + " | old coords: " + a + " " + b + " | random: "  + r + " | count: " + count);
+            //System.out.println("FIND FREE:" + x + " " + y);
+
             return new Coordinates(x,y);
         }
     }

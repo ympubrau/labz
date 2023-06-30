@@ -1,15 +1,26 @@
 package island;
 
-public class Animal {
-    public void print() {
-        System.out.print("   _   ");
+public abstract class Cell {
+
+    //координаты
+    protected int i;
+    protected int j;
+
+    public Cell(int X, int Y) {
+        i = X;
+        j = Y;
     }
+
+    public abstract Coordinates getCords();
+
+    public abstract void print();
 
     /*
         Статический метод, который возвращает True, если сработала вероятность 1/9
     */
     public static boolean isMoving() {
         int t = (int)Math.floor(Math.random() * 9);
+        //return true;
         return t == 8;
     }
 
@@ -23,22 +34,18 @@ public class Animal {
          нельзя походить, если в клетке лиса)
          Кролику надо отличать пустую клетку от клетку с лисой / кроликом.
     */
-    public boolean canBeGone() {
-        return false;
-    }
+    public abstract boolean canBeGone();
 
-    public boolean canBeEaten() {
-        return false;
-    }
+    public abstract boolean canBeEaten();
 
     /*
         Данный метод нужен для размножения. Он будет возвращать объект суперкласса, поэтому
         даже после переопределения, получившийся объект (Лису, кролика или просто животное)
         можно будет использовать в массиве в классе Island.
      */
-    public Animal reproduce() {
-        return null;
-    }
+    public abstract FreeCell reproduce(int i, int j);
 
-    public Animal move(Animal target) {return this;}
+    public abstract Coordinates move(FreeCell[][] land);
+
+    public abstract Coordinates findFree(FreeCell[][] land);
 }
