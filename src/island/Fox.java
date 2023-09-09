@@ -1,21 +1,73 @@
 package island;
 
-public class Fox extends FreeCell {
+public class Fox extends Rabbit {
     private int points = 5;
 
     public Fox(int X, int Y) {
         super(X,Y);
-        super.i = X;
-        super.j = Y;
     }
 
-    public FreeCell reproduce(int i, int j) {
-        int t = (int)Math.floor(Math.random() * 6);
-        return t > 2 ? new Fox(i,j) : null;
-    }
 
     public boolean canBeGone() {
-        return true;
+        return false;
+    }
+    public boolean canBeEaten() {return false;}
+
+    public void reproduce(FreeCell[][] copyLand) {
+        for (int i = x - 1; i < x + 2; i++){
+            for (int j = y - 1; j < y + 2; j++) {
+                if (i >= 0 && i < copyLand.length && j >= 0 && j < copyLand[0].length) {
+                    if (copyLand[i][j].canBeGone()) {
+                        copyLand[i][j] = new Fox(i,j);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean move(FreeCell[][] mainLand, FreeCell[][] copyLand) {
+        for (int i = x - 1; i < x + 2; i++){
+            for (int j = y - 1; j < y + 2; j++) {
+                if (i >= 0 && j >= 0 && i < copyLand.length &&  j < copyLand[0].length) {
+                    if (copyLand[i][j].canBeGone()) {
+                        copyLand[x][y] = mainLand[i][j];
+                        copyLand[i][j] = mainLand[x][y];
+                        this.x = j;
+                        this.y = i;
+                        return false;
+                    } else if (((Rabbit) copyLand[i][j]).canBeEaten()) {
+                        copyLand[i][j] = mainLand[x][y];
+                        copyLand[x][y] = new FreeCell(i,j);
+                        this.x = i;
+                        this.y = j;
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public FreeCell whoWillBecome(Island is) {
+        FreeCell[][] copyLand = is.getLandCopy();
+        FreeCell[][] mainLand = is.getLand();
+
+        boolean haveMoved = false;
+        if ((int)Math.floor(Math.random() * 9) > -1) haveMoved = this.move(mainLand, copyLand);
+
+        points += haveMoved ? 5 : -1;
+
+        if (points < 1) {
+            copyLand[x][y] = new FreeCell(x,y);
+            mainLand[x][y] = copyLand[x][y];
+            return this;
+        }
+
+        if ((int)Math.floor(Math.random() * 6) == 3) reproduce(copyLand);
+
+        return this;
     }
 
     public void print() {
@@ -23,86 +75,4 @@ public class Fox extends FreeCell {
         System.out.print("F (" + str + ") ");
     }
 
-    public Coordinates move (FreeCell[][] land) {
-        Coordinates t = findFreeFox(land);
-        FreeCell target = land[i][j];
-        if (target.canBeEaten()) {
-            //System.out.println("EATEN");
-            points += 3;
-            return t;
-        } else {
-            points --;
-            return points <= 0 ? new Coordinates(-1,-1) : t;
-        }
-    }
-
-    //ищет клетку где либо сводно, либо есть кролик
-    private Coordinates findFreeFox(FreeCell[][] land) {
-        int count = 0;
-        int a = i;
-        int b = j;
-
-        //обработка рамок
-        int a1 = a == 0 ? 0 : a - 1;
-        int a2 = a == land.length - 1 ? land.length - 1 : a + 2;
-        int b1 = b == 0 ? 0 : b - 1;
-        int b2 = b == land.length - 1 ? land.length - 1 : b + 2;
-
-        //Есть ли вообще свободный
-        for (int i = a1; i < a2; i++) {
-            for (int j = b1; j < b2; j++) {
-                if (i == a && j == b) continue;
-                if (!land[i][j].canBeGone()) {
-                    count += 1;
-                }
-            }
-        }
-
-        if (count <= 0) return new Coordinates(-1,-1);
-
-        //поиск свободного
-        while (true) {
-            int r = (int)Math.floor(Math.random() * 9);
-
-            int x,y;
-            x = a;
-            y = b;
-
-            if (r == 0) {
-                x -= 1;
-                y -= 1;
-            }
-            if (r == 1) {
-                y -= 1;
-            }
-            if (r == 2) {
-                x += 1;
-                y -= 1;
-            }
-            if (r == 3) {
-                x -= 1;
-            }
-            if (r == 4) {
-                continue;
-            }
-            if (r == 5) {
-                x += 1;
-            }
-            if (r == 6) {
-                x -= 1;
-                y += 1;
-            }
-            if (r == 7) {
-                y += 1;
-            }
-            if (r == 8) {
-                x += 1;
-                y += 1;
-            }
-
-            if (x < 0 || y < 0 || y >= land.length || x >= land.length) continue;
-            //System.out.println(x + " " + y + " | old coords: " + a + " " + b + " | random: "  + r + " | count: " + count);
-            return new Coordinates(x,y);
-        }
-    }
 }
