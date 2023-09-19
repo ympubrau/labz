@@ -1,10 +1,8 @@
 package StringClass;
 
 public class List {
-
     //элемент списка
-    public class StringItem {
-
+    private static class StringItem {
         //массив для храннеия чаров
         private final char [] symbols;
 
@@ -22,7 +20,7 @@ public class List {
     }
 
     //дополнительный класс чтобы возвращать позицию элемента и айтем в одной переменной (нужен для методов поиска)
-    public class Wrapper {
+    private static class Wrapper {
         public Wrapper(int a, StringItem b) {
             position = a;
             node = b;
@@ -44,13 +42,27 @@ public class List {
         if(sz1 + sz2 <= SIZE) {
             for (int i = 0; i < sz2; i++) {
                 ar1[sz1+i] = ar2[i];
+                //System.out.println(ar2[i]);
             }
         }
     }
 
-    //поиск по индексу
-    public Wrapper search(int index) {
+    private char[] getCharArrayFromString(String str, int start, int end) {
+        char[] ar = new char[16];
 
+        int q = 0;
+        for (int i = start; i < end; i++) {
+            ar[q] = str.charAt(i);
+            //System.out.println(ar[q]);
+            q++;
+        }
+        //System.out.println("---------------------");
+
+        return ar;
+    }
+
+    //поиск по индексу
+    private Wrapper search(int index) {
         //стандартный цикл с запаздывающим указателем
         StringItem g = this.head;
         StringItem h = g.next;
@@ -71,30 +83,17 @@ public class List {
 
     //поиск последнего элемента со сцепкой айтемов
     //То есть во время данного метода происходит оптимизация всех нодов
-    public Wrapper searchEnd() {
+    private Wrapper searchEnd() {
         StringItem g = this.head;
         StringItem h = g.next;
 
         while (h != null) {
-            if(h.next!=null) {
-
-                //если один элемент полностью помещается во второй, то переносим второй массив в первый и перекидываем ссылку
-                if(g.size + h.size <= SIZE) {
-                    unionArrays(g.symbols, h.symbols, g.size, h.size);
-                    g.size += h.size;
-                    g.next = h.next;
-                }
-            }
             g = h;
             h = h.next;
         }
         return (new Wrapper(g.size, g));
     }
 
-
-    public void print() {
-        System.out.println(this);
-    }
 
     public List() {
         head =  null;
@@ -138,7 +137,7 @@ public class List {
                 chararray = new char[SIZE];
                 m = len - (len - m + SIZE);
                 q.getChars(m, len ,chararray,0);
-                h.next = new StringItem(chararray, (byte)(len - m), null);
+                h.next = new StringItem(chararray, (byte) (len - m), null);
             }
         }
     }
@@ -217,7 +216,7 @@ public class List {
         if (this.length() % SIZE == 0) {
             char[] arr = new char[SIZE];
             arr[0] = symbol;
-            head = new StringItem(arr, (byte)1, head);
+            head = new StringItem(arr, (byte) 1, head);
         }
         else {
             //если новый айтем не нужен - добавляем элемент в последний айтем.
@@ -269,33 +268,35 @@ public class List {
         if (x.position == 0 && x.node == head) {
             l.append(this);
             this.head = l.head;
+            return;
         }
 
         //вставка, между двумя айтемами в конец
         if (x.position == x.node.size - 1) {
             l.searchEnd().node.next = x.node.next;
             x.node.next = l.head;
+            return;
         }
 
         //остальные варианты
-        else {
-            str = new String(x.node.symbols);
+        str = new String(x.node.symbols);
+        //деление айтема на два
+        StringItem q1 = new StringItem(getCharArrayFromString(str, 0, x.position), (byte) (x.position), null);
+        StringItem q2 = new StringItem(
+                getCharArrayFromString(str, x.position, x.node.size),
+                (byte) (x.node.size - x.position),
+                x.node.next);
 
-            //деление айтема на два
-            StringItem q1 = new StringItem(str.substring(0, x.position).toCharArray(), (byte) (x.position), null);
-            StringItem q2 = new StringItem(str.substring(x.position, x.node.size).toCharArray(), (byte) (x.node.size - x.position), x.node.next);
+        //если делится голова - обрабатываеся отдельно, поскольку в таком случае x1 = -1 (у головы нет предыдущего айтема)
+        if (head == x.node)
+            head = q1;
+        else
+            x1.node.next = q1;
 
-            //если делится голова - обрабатываеся отдельно, поскольку в таком случае x1 = -1 (у головы нет предыдущего айтема)
-            if (head == x.node)
-                head = q1;
-            else
-                x1.node.next = q1;
-
-            //перекидывание ссылок
-            q1.next = l.head;
-            x = l.search(l.length());
-            x.node.next = q2;
-        }
+        //перекидывание ссылок
+        q1.next = l.head;
+        x = l.searchEnd();
+        x.node.next = q2;
     }
 
     //реальная длина строки
@@ -308,22 +309,32 @@ public class List {
             q += h.size;
             h = h.next;
         }
-
         return q;
     }
 
     //Строковое представление объекта ListString (переопределить метод)
     public String toString() {
-        StringItem h = this.head;
-        StringBuilder str = new StringBuilder();
+        String str = "";
+        StringItem g = this.head;
+        StringItem h = g.next;
 
-        //добавляем к строке значающие части всех айтемов
-        while (h!=null) {
-            str.append(String.copyValueOf(h.symbols, 0, h.size));
+        while (h != null) {
+            str += String.copyValueOf(g.symbols, 0, g.size);
+            //если один элемент полностью помещается во второй, то переносим второй массив в первый и перекидываем ссылку
+            if(g.size + h.size <= SIZE) {
+                unionArrays(g.symbols, h.symbols, g.size, h.size);
+                g.size += h.size;
+                g.next = h.next;
+
+            }
+
+            g = h;
             h = h.next;
         }
 
-        return str.toString();
+        str += String.copyValueOf(g.symbols, 0, g.size);
+
+        return str;
     }
 
     public static void main(String[] args){
