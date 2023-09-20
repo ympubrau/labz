@@ -38,7 +38,7 @@ public class List {
 
     //соединение двух массивов
     //параметры: из какого массива, в какой массив, сколько занятых элементов в первом, сколько занятых во втором
-    public void unionArrays(char[] ar1, char [] ar2, int sz1, int sz2) {
+    private void unionArrays(char[] ar1, char [] ar2, int sz1, int sz2) {
         if(sz1 + sz2 <= SIZE) {
             for (int i = 0; i < sz2; i++) {
                 ar1[sz1+i] = ar2[i];
@@ -63,22 +63,23 @@ public class List {
 
     //поиск по индексу
     private Wrapper search(int index) {
-        //стандартный цикл с запаздывающим указателем
-        StringItem g = this.head;
-        StringItem h = g.next;
-        int q = g.size;
-
-        while (q < index) {
-            q += h.size;
-            g = h;
-            h = h.next;
-        }
-
-        if (g == head) {
+        //System.out.println(index);
+        if (index <= this.head.size) {
             return (new Wrapper(index - 1, head));
-        } else {
-            return (new Wrapper(index - q + g.size, g));
         }
+
+        StringItem g = this.head;
+        int q = 0;
+
+        while (g != null) {
+            q += g.size;
+            if (q >= index) {
+                return (new Wrapper(index - q + g.size, g));
+            }
+
+            g = g.next;
+        }
+        return (new Wrapper(-1, null));
     }
 
     //поиск последнего элемента со сцепкой айтемов
@@ -93,7 +94,6 @@ public class List {
         }
         return (new Wrapper(g.size, g));
     }
-
 
     public List() {
         head =  null;
@@ -157,10 +157,12 @@ public class List {
 
     //вернуть символ в строке в позиции index
     public char charAt(int index) {
-        if(index <= 0 || index > this.length())
+        if(index <= 0)
             throw new myException("Не подходящий индекс");
 
         Wrapper x = this.search(index);
+        if (x.position == -1 ) throw new myException("Не подходящий индекс");
+
         //возвращаем символ через вспомогательный класс
         return(x.node.symbols[x.position]);
     }
@@ -178,13 +180,13 @@ public class List {
 
     //взятие подстроки, от start до end, не включая end, возвращается новый объект ListString, исходный не изменяется
     public List substring(int start, int end) {
-        if(start <= 0 || end <= 0 || start > end || start > this.length() || end > this.length() || end < start+1 )
+        if(start <= 0 || end <= 0 || start > end || end < start+1 )
             throw new myException("Не подходящий индекс");
 
         //поиск начала и конца искомого отрезка строки
         Wrapper x = this.search(start);
         Wrapper y = this.search(end);
-        //System.out.println(y.position+" "+x.position);
+        if (x.position == -1 || y.position == -1)  throw new myException("Такой позиции нет в списке");
 
         //Если отрезок нужной строки находится в одном ноде
         if (x.node==y.node){
@@ -222,7 +224,7 @@ public class List {
             //если новый айтем не нужен - добавляем элемент в последний айтем.
             Wrapper x = this.searchEnd();
             x.node.symbols[x.position] = symbol;
-            this.search(this.length()).node.size += 1;
+            this.searchEnd().node.size += 1;
         }
     }
 
@@ -255,14 +257,16 @@ public class List {
 
     //вставить в строку в позицию index строку ListString (разбить блок на два по позиции index и строку вставить между этими блоками)
     public void insert(int index, String str) {
-        if(index <= 0 || index > this.length())
+        if(index <= 0)
             throw new myException("Не подходящий индекс");
 
         //создаем копию объекта, а также ищем айтем в который надо вставить, а также предыдущий айтем
-        List l = new List(str);
+
         Wrapper x = this.search(index);
         Wrapper x1 = this.search(index - x.position - 1);
-        //System.out.println(x.position);
+        if (x.position == -1)  throw new myException("Не подходящий индекс");
+
+        List l = new List(str);
 
         //вставка в первый айтем
         if (x.position == 0 && x.node == head) {
@@ -301,12 +305,21 @@ public class List {
 
     //реальная длина строки
     public int length() {
-        StringItem h = this.head;
-        int q = 0;
+        StringItem g = this.head;
+        StringItem h = g.next;
+        int q = g.size;
 
-        //реальный размер строки считается суммой всех занятых мест во всем списке
         while (h != null) {
             q += h.size;
+
+            //если один элемент полностью помещается во второй, то переносим второй массив в первый и перекидываем ссылку
+            if(g.size + h.size <= SIZE) {
+                unionArrays(g.symbols, h.symbols, g.size, h.size);
+                g.size += h.size;
+                g.next = h.next;
+            }
+
+            g = h;
             h = h.next;
         }
         return q;
@@ -316,23 +329,11 @@ public class List {
     public String toString() {
         String str = "";
         StringItem g = this.head;
-        StringItem h = g.next;
 
-        while (h != null) {
+        while (g != null) {
             str += String.copyValueOf(g.symbols, 0, g.size);
-            //если один элемент полностью помещается во второй, то переносим второй массив в первый и перекидываем ссылку
-            if(g.size + h.size <= SIZE) {
-                unionArrays(g.symbols, h.symbols, g.size, h.size);
-                g.size += h.size;
-                g.next = h.next;
-
-            }
-
-            g = h;
-            h = h.next;
+            g = g.next;
         }
-
-        str += String.copyValueOf(g.symbols, 0, g.size);
 
         return str;
     }
